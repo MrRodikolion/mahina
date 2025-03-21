@@ -4,7 +4,7 @@
 
 #define MOTOR_IN1 19
 #define MOTOR_IN2 18
-#define BASESPED 60
+#define BASESPED 50
 #define STOP 0
 
 TaskHandle_t Task1;
@@ -27,7 +27,6 @@ uint16_t sensorValues[SensorCount];
 int sensetivity = 1000;
 int posm = 4500;
 int oldpos = 4500;
-int stlinr = 0, stlinc = 0;
 
 int t_strt = 0;
 bool is_line_passed = false;
@@ -99,13 +98,9 @@ public:
     }
 };
 
-PID pid{0.01, 0.001, 0.01}; // { 0.01, 0.004, 0.06 };  //{0.015, 0.0025, 0.04}; // {0.02, 0.003, 0.04}; //{0.015, 0.0025, 0.05}; // 0.015 0.003 0.03
+PID pid{0.015, 0.0025, 0.04}; // { 0.01, 0.004, 0.06 };  //{0.015, 0.0025, 0.04}; // {0.02, 0.003, 0.04}; //{0.015, 0.0025, 0.05}; // 0.015 0.003 0.03
 
 int angle = 90;
-
-int mod(int n) {
-    return n >= 0 ? n : -n;
-}
 
 void irDa();
 line_data get_cool_line();
@@ -178,9 +173,7 @@ void Task1code(void *pvParameters)
     for (;;)
     {
         // get centr line
-        qtr.readCalibrated(sensorValues, QTRReadMode::On);
-        stlinr = sensorValues[9];
-        stlinc = sensorValues[5];
+        qtr.readCalibrated(sensorValues);
         // pos = qtr.readLineBlack(sensorValues);
         for (int i = 0; i < SensorCount; i++)
         {
@@ -200,15 +193,6 @@ void Task1code(void *pvParameters)
         }
 
         posm = min(calculateWeightedCenter(sensorValues, SensorCount), 9000);
-
-        if (abs(posm - oldpos) > 2500)
-        {
-            posm = oldpos;
-        }
-        if (is_stop_lin && is_red || sensorValues[5] > 800 && sensorValues[0] > 800)
-        {
-            posm = 4500;
-        }
 
         // if (!is_line_passed)
         // {
@@ -236,13 +220,14 @@ void Task1code(void *pvParameters)
 
         // get angle
         angle = pid.get_angle(posm);
-        oldpos = posm;
-
-        // Serial.println(angle);
+        if (is_stop_lin)
+        {
+          angle = 90;
+        }
 
         // // write
         myServo.write(angle);
-        delay(1);
+        delay(5);
     }
 }
 
@@ -251,7 +236,7 @@ void Task2code(void *pvParameters)
     for (;;)
     {
         irDa();
-        if (stlinr > 800 && stlinc > 800)
+        if (sensorValues[9] > 500)
         {
             is_stop_lin = true;
         }
@@ -262,14 +247,14 @@ void Task2code(void *pvParameters)
                 is_stop_lin = false;
             }
         }
-        
+
         if ((is_red && is_stop_lin))
         {
             speed = 0;
         }
         else if (is_red)
         {
-            speed = BASESPED / 3;
+            speed = BASESPED / 2;
         }
         else
         {
@@ -277,7 +262,7 @@ void Task2code(void *pvParameters)
         }
         analogWrite(MOTOR_IN1, speed);
         analogWrite(MOTOR_IN2, LOW);
-        delay(1);
+        delay(5);
     }
 }
 
@@ -302,5 +287,9 @@ void irDa()
         {
             is_red = false;
         }
+    }
+    else
+    {
+        is_red = false;
     }
 }
