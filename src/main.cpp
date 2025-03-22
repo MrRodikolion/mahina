@@ -86,20 +86,29 @@ public:
         // if (start_time - time > 30 * 1000) {
         //   start_time = millis();
         // }
-        integral += error * i;
-        float integ = integral / (start_time - time);
+        // integral += error * i;
+        // float integ = integral / (start_time - time);
 
-        int derivative = error - old_error;
+        // int derivative = error - old_error;
 
-        int angle = (p * error + integ + d * derivative) + 90;
+        // int angle = (p * error + integ + d * derivative) + 90;
+
+        int dt = start_time - time;
+
+        integral = integral + error * dt;
+
+        int derivative = (error - old_error) / dt;
+        
+        int angle = (p * error + i * integral + d * derivative) + 90;
 
         old_error = error;
+        start_time = millis();
 
         return min(max(angle, 57), 123);
     }
 };
 
-PID pid{0.01, 0.001, 0.01}; // { 0.01, 0.004, 0.06 };  //{0.015, 0.0025, 0.04}; // {0.02, 0.003, 0.04}; //{0.015, 0.0025, 0.05}; // 0.015 0.003 0.03
+PID pid{0.01, 0.0015, 0.01}; // { 0.01, 0.004, 0.06 };  //{0.015, 0.0025, 0.04}; // {0.02, 0.003, 0.04}; //{0.015, 0.0025, 0.05}; // 0.015 0.003 0.03
 
 int angle = 90;
 
@@ -165,7 +174,6 @@ int calculateWeightedCenter(const u_int16_t *array, int size)
 
     for (int i = cur_line.start; i < cur_line.end; i++)
     {
-        // Умножаем индекс на 1000 для масштабирования до диапазона 0-10000
         weightedSum += (float)i * 1000 * array[i];
         weightSum += array[i];
     }
