@@ -9,6 +9,7 @@
 
 TaskHandle_t Task1;
 TaskHandle_t Task2;
+portMUX_TYPE state_mux = portMUX_INITIALIZER_UNLOCKED;
 
 //------------ svet
 bool is_red = true;
@@ -66,7 +67,7 @@ class PID
     float old_error = 0;
     float integral = 0;
 
-    float start_time;
+    uint32_t start_time;
 
 public:
     PID(float kp, float ki, float kd)
@@ -82,29 +83,18 @@ public:
     {
         int error = centr - 4500;
 
-        int time = millis();
-        // if (start_time - time > 30 * 1000) {
-        //   start_time = millis();
-        // }
-        // integral += error * i;
-        // float integ = integral / (start_time - time);
-
-        // int derivative = error - old_error;
-
-        // int angle = (p * error + integ + d * derivative) + 90;
-
-        int dt = start_time - time;
-
-        integral = integral + error * dt;
-
-        int derivative = (error - old_error) / dt;
-        
-        int angle = (p * error + i * integral + d * derivative) + 90;
-
-        old_error = error;
-        start_time = millis();
-
-        return min(max(angle, 57), 123);
+        const uint32_t now = millis();
+        const uint32_t dt = now - start_time;
+        float derivative = 0;
+        if (dt > 0)
+        {
+            integral += error * static_cast<float>(dt);
+            derivative = (error - old_error) / static_cast<float>(dt);
+            old_error = error;
+            start_time = now;
+        }
+        const float angle = (p * error + i * integral + d * derivative) + 90;
+        return static_cast<int>(min(max(angle, 57.0f), 123.0f));
     }
 };
 
@@ -167,18 +157,24 @@ void setup()
     delay(500);
 }
 
-int calculateWeightedCenter(const u_int16_t *array, int size)
+int calculateWeightedCenter(const uint16_t *array, int size)
 {
     float weightedSum = 0.0;
     float weightSum = 0.0;
 
-    for (int i = cur_line.start; i < cur_line.end; i++)
+    if (array == nullptr || size <= 0)
+    {
+        return oldpos;
+    }
+    const int start = min(static_cast<int>(cur_line.start), size);
+    const int end = min(static_cast<int>(cur_line.end), size);
+    for (int i = start; i < end; i++)
     {
         weightedSum += (float)i * 1000 * array[i];
         weightSum += array[i];
     }
 
-    return (int)(weightedSum / weightSum);
+    return weightSum > 0 ? static_cast<int>(weightedSum / weightSum) : oldpos;
 }
 
 void Task1code(void *pvParameters)
@@ -187,9 +183,14 @@ void Task1code(void *pvParameters)
     {
         // get centr line
         qtr.readCalibrated(sensorValues, QTRReadMode::On);
+        portENTER_CRITICAL(&state_mux);
         stlinr = sensorValues[9];
         stlinc = sensorValues[5];
+        const bool should_center = is_stop_lin && is_red;
+        portEXIT_CRITICAL(&state_mux);
         // pos = qtr.readLineBlack(sensorValues);
+        cur_line.start = SensorCount;
+        cur_line.end = SensorCount;
         for (int i = 0; i < SensorCount; i++)
         {
             if (sensorValues[i] > porog)
@@ -213,7 +214,7 @@ void Task1code(void *pvParameters)
         {
             posm = oldpos;
         }
-        if (is_stop_lin && is_red || sensorValues[5] > 800 && sensorValues[0] > 800)
+        if (should_center || (sensorValues[5] > 800 && sensorValues[0] > 800))
         {
             posm = 4500;
         }
@@ -259,6 +260,7 @@ void Task2code(void *pvParameters)
     for (;;)
     {
         irDa();
+        portENTER_CRITICAL(&state_mux);
         if (stlinr > 800 && stlinc > 800)
         {
             is_stop_lin = true;
@@ -270,12 +272,15 @@ void Task2code(void *pvParameters)
                 is_stop_lin = false;
             }
         }
-        
-        if ((is_red && is_stop_lin))
+        const bool red = is_red;
+        const bool stop_line = is_stop_lin;
+        portEXIT_CRITICAL(&state_mux);
+
+        if (red && stop_line)
         {
             speed = 0;
         }
-        else if (is_red)
+        else if (red)
         {
             speed = BASESPED / 3;
         }
@@ -302,6 +307,7 @@ void irDa()
         {
             sensor = lastFilter;
         }
+        portENTER_CRITICAL(&state_mux);
         if (sensor == 0 || sensor == 1 || sensor == 4)
         {
             is_red = true;
@@ -310,5 +316,6 @@ void irDa()
         {
             is_red = false;
         }
+        portEXIT_CRITICAL(&state_mux);
     }
 }

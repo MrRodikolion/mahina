@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img">
+<title>mahina · подключение по исходному коду</title>
+<rect width="1200" height="760" fill="#101827"/>
+<text x="40" y="60" fill="white" font-family="sans-serif" font-size="30">mahina · подключение по исходному коду</text>
+<path d="M370 270L440 270" stroke="#51a5e8" stroke-width="3"/>
+<text x="405" y="260" text-anchor="middle" fill="#9ed4ff" font-family="sans-serif" font-size="16">ADC</text>
+<path d="M750 245L850 245" stroke="#51a5e8" stroke-width="3"/>
+<text x="800" y="235" text-anchor="middle" fill="#9ed4ff" font-family="sans-serif" font-size="16">servo</text>
+<path d="M750 345L850 395" stroke="#51a5e8" stroke-width="3"/>
+<text x="800" y="360" text-anchor="middle" fill="#9ed4ff" font-family="sans-serif" font-size="16">IN1/IN2</text>
+<path d="M595 460L595 370" stroke="#51a5e8" stroke-width="3"/>
+<text x="595" y="405" text-anchor="middle" fill="#9ed4ff" font-family="sans-serif" font-size="16">0…4</text>
+<rect x="40" y="180" width="330" height="180" rx="15" fill="#203149" stroke="#6c8aaa"/>
+<text x="56" y="212" fill="white" font-family="sans-serif" font-size="20">QTR: 10 аналоговых каналов</text>
+<text x="56" y="245" fill="#cbd8e9" font-family="sans-serif" font-size="16">0…4 → GPIO13,12,14,27,26</text>
+<text x="56" y="270" fill="#cbd8e9" font-family="sans-serif" font-size="16">5…9 → GPIO25,33,32,35,34</text>
+<text x="56" y="295" fill="#cbd8e9" font-family="sans-serif" font-size="16">Модель датчика не задана</text>
+<rect x="440" y="210" width="310" height="160" rx="15" fill="#203149" stroke="#6c8aaa"/>
+<text x="456" y="242" fill="white" font-family="sans-serif" font-size="20">ESP32 DOIT DevKit V1</text>
+<text x="456" y="275" fill="#cbd8e9" font-family="sans-serif" font-size="16">QTR → PID → рулевое servo</text>
+<text x="456" y="300" fill="#cbd8e9" font-family="sans-serif" font-size="16">UART → скорость мотора</text>
+<rect x="850" y="150" width="310" height="110" rx="15" fill="#203149" stroke="#6c8aaa"/>
+<text x="866" y="182" fill="white" font-family="sans-serif" font-size="20">Сервопривод</text>
+<text x="866" y="215" fill="#cbd8e9" font-family="sans-serif" font-size="16">Сигнал GPIO5</text>
+<rect x="850" y="345" width="310" height="140" rx="15" fill="#203149" stroke="#6c8aaa"/>
+<text x="866" y="377" fill="white" font-family="sans-serif" font-size="20">Драйвер → мотор</text>
+<text x="866" y="410" fill="#cbd8e9" font-family="sans-serif" font-size="16">IN1 GPIO19 · IN2 GPIO18</text>
+<text x="866" y="435" fill="#cbd8e9" font-family="sans-serif" font-size="16">Модель драйвера не задана</text>
+<rect x="440" y="460" width="310" height="130" rx="15" fill="#203149" stroke="#6c8aaa"/>
+<text x="456" y="492" fill="white" font-family="sans-serif" font-size="20">Источник UART</text>
+<text x="456" y="525" fill="#cbd8e9" font-family="sans-serif" font-size="16">Serial2 · 115200 бод</text>
+<text x="456" y="550" fill="#cbd8e9" font-family="sans-serif" font-size="16">RX/TX явно не заданы</text>
+<text x="40" y="650" fill="#cbd8e9" font-family="sans-serif" font-size="17">Логические сигнальные связи подтверждены src/main.cpp. Аппаратные испытания не выполнены.</text>
+<text x="40" y="677" fill="#cbd8e9" font-family="sans-serif" font-size="17">Питание, земля, токи, уровни UART и номиналы требуют проверки реальной схемы.</text>
+<text x="40" y="704" fill="#cbd8e9" font-family="sans-serif" font-size="17">Коды 0/1/4: красный; 2/3: движение; модель UART-передатчика в коде не определена.</text>
+</svg>
